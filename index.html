@@ -1,0 +1,60 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>서울시 모기 예보</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; }
+    .result { margin-top: 1rem; padding: 1rem; border: 1px solid #ddd; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <h1>🦟 서울시 모기 예보 확인</h1>
+  <p>API 키를 연결하면 날짜별로 모기 예보를 볼 수 있어요.</p>
+
+  <label for="date">날짜 선택: </label>
+  <input type="date" id="date" />
+  <button onclick="getMosquitoData()">예보 확인</button>
+
+  <div id="result" class="result"></div>
+
+  <script>
+    async function getMosquitoData() {
+      const date = document.getElementById("date").value;
+      const resultEl = document.getElementById("result");
+
+      if (!date) {
+        resultEl.innerHTML = "날짜를 선택해주세요.";
+        return;
+      }
+
+      const API_KEY = "YOUR_API_KEY_HERE"; // 여기에 서울시에서 발급받은 API 키 넣기
+      const url = `https://corsproxy.io/?https://openapi.seoul.go.kr:8088/${API_KEY}/json/MosquitoStatus/1/5/${date}`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        const info = data?.MosquitoStatus?.row?.[0];
+
+        if (!info) {
+          resultEl.innerHTML = "해당 날짜의 데이터가 없습니다.";
+          return;
+        }
+
+        const msg = `
+          📅 <strong>${info.MOSQUITO_DATE}</strong><br/>
+          🌊 수변 지수: ${info.MOSQUITO_VALUE_WATER}<br/>
+          🏠 주거 지수: ${info.MOSQUITO_VALUE_HOUSE}<br/>
+          🌳 공원 지수: ${info.MOSQUITO_VALUE_PARK}
+        `;
+        resultEl.innerHTML = msg;
+      } catch (e) {
+        console.error(e);
+        resultEl.innerHTML = "데이터를 불러오는 데 실패했습니다.";
+      }
+    }
+  </script>
+</body>
+</html>
